@@ -1,0 +1,12 @@
+first step:
+	1_1_1_process_oct_video_vibrations_4saito.py
+to check if the data should be analyzed or not
+
+confirm whether the observation scope is correct. 
+If there are no issues, proceed to the following flow:
+	bat1.py (select from 1_primary)
+	bat2.py (select from 2_processed)
+	bat3.py (select from 2_processed, need to manipulate manually)
+
+
+change 30000 points
