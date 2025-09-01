@@ -23,7 +23,7 @@ dataset = "OCT_BRUSH"
 target_file = "skin_displacement_estimation_corrected.csv"
 
 # force_processing = False
-save_results = True
+save_results = False
 show = True
 
 # Initialize paths and setup folders
@@ -71,7 +71,14 @@ def plot_displacement_vs_frequency_at_depths(phase_change_data, sampling_rate, d
             continue
         
         # plt.figure()
-        for offset in [0, 40, 160]: # 2.5um  #0, 38 2.63 um/pixel: 0, 100, 400(152), 1000(380p) um from surface   approximately 2.7 mm (Max imaging depth for air(3.5 mm) & skin(2.54 mm))
+        if 'bare' in condname.lower():
+            offsets = [2, 20, 160]
+        elif 'tegaderm' in condname.lower():
+            offsets = [22, 40, 180] 
+        else:
+            raise ValueError(f"Unknown cover type")
+        for offset in offsets:
+        # for offset in [0, 40, 160]: # 2.5um  #0, 38 2.63 um/pixel: 0, 100, 400(152), 1000(380p) um from surface   approximately 2.7 mm (Max imaging depth for air(3.5 mm) & skin(2.54 mm))
             depth_data = np.zeros(dff.shape[0])
             dep_indices = dff.iloc[:, 0].astype(int).values + offset
             dep_indices = np.clip(dep_indices, 0, 1023) # Ensure values do not exceed 1024
@@ -125,7 +132,7 @@ def plot_displacement_vs_frequency_at_depths(phase_change_data, sampling_rate, d
     fig.suptitle(f'Amplitude vs Frequency ({condname})', fontsize=16)
     # fig.suptitle(f'Displacement vs Frequency ({condname})', fontsize=16)
     plt.tight_layout()
-    # plt.savefig(save_path, dpi=50)
+    plt.savefig(save_path, dpi=50)
     plt.show()
 
 # morph FFT
