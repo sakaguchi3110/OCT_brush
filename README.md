@@ -27,6 +27,7 @@ It includes scripts to process structural scans, vibration videos, morph data, p
 
 - **1_0_0_process_oct_structural_images.py**  
   Processes structural OCT acquisitions into normalized 16-bit grayscale morph images.
+  
     *Apply this code to the "Structure" file in the Primary folder.
 
 - **1_1_1_process_oct_video_vibrations.py**  
