@@ -27,27 +27,35 @@ It includes scripts to process structural scans, vibration videos, morph data, p
 
 - **1_0_0_process_oct_structural_images.py**  
   Processes structural OCT acquisitions into normalized 16-bit grayscale morph images.
+    *Apply this code to the "Structure" file in the Primary folder.
 
 - **1_1_1_process_oct_video_vibrations.py**  
   Computes morphological data for non-structural vibration recordings and saves results.
+    *Apply this code to the "Video" file in the Primary folder.
 
 - **1_1_1_process_oct_video_vibrations_4saito.py**  
   Estimates skin displacement from vibration videos by depth filtering and boundary detection; exports CSV and optional figures.
+    *Apply this code to the "Video" file in the Primary folder.
 
 - **1_1_3_process_oct_video_vibrations_show.py**  
   Loads processed vibration data (`morph.pkl`), applies optional resizing/smoothing/detrend/flip/normalization, and visualizes A-line surfaces or subplots.
+    *Apply this code to the "Video" file in the Processed folder.
 
 - **1_2_1_process_oct_video_vibration_as_image.py**  
   Converts vibration volumes to per-A-line images with optional downsampling; exports a multi-page TIFF stack.
+    *Apply this code to the "Video" file in the Processed folder.
 
 - **1_3_0_process_oct_phase-change.py**  
   Runs phase-change computation on vibration recordings and saves the results as `phase_change_data.npy`.
+    *Apply this code to the "Video" file in the Processed folder.
 
 - **1_3_1_process_oct_morph-n-phase-change_show.py**  
   Visualizes amplitude (dB), phase, and phase-change images per A-line; exports PNGs (packable into `_all_morph_and_phase/`).
+    *Apply this code to the "Video" file in the Processed folder.
 
 - **1_4_0_process_oct_skin-surface_tracking.py**  
   Tracks the skin surface in vibration videos by denoising and binarizing depth-time slices; saves positions to `skin_displacement_estimation.csv`.
+    *Apply this code to the "Video" file in the Processed folder.
 
 ---
 
