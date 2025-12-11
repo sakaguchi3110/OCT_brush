@@ -6,10 +6,12 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 from pathlib import Path
 import cv2
+import inspect
+
 
 # Add the path to the library_python module
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
-import library_python.data_management.path_tools1 as path_tools  # noqa: E402
+import library_python.data_management.path_tools as path_tools  # noqa: E402
 from library_python.sensors.OCT.OCTRecordingManager1 import OCTRecordingManager  # noqa: E402
 from library_python.sensors.OCT.OCTMorph import OCTMorph  # noqa: E402
 from library_python.signal_processing.InteractiveVectorEditor import InteractiveVectorEditor  # noqa: E402
@@ -26,12 +28,12 @@ if __name__ == "__main__":
     # 0. Initialization of parameters
     data_external_hdd = False
     set_path_automatic = False
-    dataset = "OCT_BRUSH"  # OCT_VIB_NEUR, OCT_HAIR-DEFLECTION
+    dataset = "OCT_BRU_NEUR"  # OCT_VIB_NEUR, OCT_HAIR-DEFLECTION, OCT_BRU_NEUR
     datatype = "OCT_HAIR-DEFLECTION"  # OCT_VIB_NEUR, OCT_HAIR-DEFLECTION
 
     force_processing = True
     save_results = True
-    show = False
+    show = True
     save_figure = True
     # Initialize paths and setup folders
     db_path = path_tools.define_OCT_database_path(data_external_hdd)  # Assumes this is a custom function
@@ -55,8 +57,8 @@ if __name__ == "__main__":
             continue
         if octr.exist("morph.pkl")[0] and not(force_processing):
             print("Morph has been previously processed and processing is not forced.")
-            continue
-
+            # continue
+        
         octr.compute_morph(force_processing=force_processing, save_hdd=False)  # save_results
 
         # Process the morph data without saving
@@ -111,9 +113,74 @@ if __name__ == "__main__":
                     # Create the directory if it doesn't exist
                     if not os.path.exists(os.path.dirname(output_img_abs)):
                         os.makedirs(os.path.dirname(output_img_abs))
-                    fig.savefig(output_img_abs, dpi=30, bbox_inches='tight')  # Use dpi=300 for high-quality images
+                    # fig.savefig(output_img_abs, dpi=300, bbox_inches='tight')  # Use dpi=300 for high-quality images
                 if show:
                     plt.show(block=True)
+                # if show or save_figure:
+                #     # 必要最小のペイロード（前段で self.plot_payload を作っておくこと）
+                #     p = getattr(octr.morph, "plot_payload", None)
+                #     if p is None:
+                #         raise RuntimeError("plot_payload がありません。compute_morph 内で self.plot_payload を作成してください。")
+
+                #     import matplotlib.cm as cm
+                #     import matplotlib.colors as mcolors
+
+                #     # --- 受け渡し品 ---
+                #     t_vis     = p["t_vis"]          # (T')
+                #     vs_vis    = p["vs_vis"]         # (K, T')
+                #     depth_vis = p["depth_vis"]      # (K,)
+                #     a         = int(p["a"])
+                #     t_min     = int(p["t_min"])
+                #     t_max     = int(p["t_max"])
+                #     depth_min = int(p["depth_min"])
+
+                #     # --- 上段：振幅(dB)を同じ時間範囲で切り出して表示（深さ0が上） ---
+                #     amp_dB   = np.array(octr.morph.morph_dB_video[a])        # (Z,T)
+                #     amp_slice = amp_dB[depth_min:, t_min:t_max+1]             # depth>=depth_min, time[t_min..t_max]
+
+                #     # 振幅の表示レンジ（必要なら調整）
+                #     vmin = np.nanpercentile(amp_slice, 5)
+                #     vmax = np.nanpercentile(amp_slice, 99)
+
+                #     fig, (ax0, ax1) = plt.subplots(2, 1, figsize=(16, 9), sharex=True)
+
+                #     im0 = ax0.imshow(
+                #         amp_slice, cmap="viridis", aspect="auto",
+                #         extent=[t_min, t_max, depth_min + amp_slice.shape[0] - 1, depth_min],
+                #         vmin=vmin, vmax=vmax
+                #     )
+                #     ax0.set_title("Amplitude (dB)")
+                #     ax0.set_ylabel("Depth (px)")
+                #     cbar0 = fig.colorbar(im0, ax=ax0)
+                #     cbar0.set_label("Amplitude (dB)")
+
+                #     # --- 下段：信頼区間の線グラフ（深さで色をグラデーション） ---
+                #     norm = mcolors.Normalize(vmin=int(depth_vis.min()), vmax=int(depth_vis.max()))
+                #     cmap = cm.viridis
+                #     for k in range(vs_vis.shape[0]):
+                #         ax1.plot(t_vis, vs_vis[k], color=cmap(norm(depth_vis[k])), lw=1, alpha=0.9)
+
+                #     ax1.set_xlabel("Time index")
+                #     ax1.set_ylabel("|Δ Displacement| (px/frame)")
+                #     ax1.set_title("Reliable motion magnitude")
+                #     ax1.grid(True, alpha=0.3)
+
+                #     # 下段に深さのカラーバー（凡例）
+                #     sm = cm.ScalarMappable(cmap=cmap, norm=norm)
+                #     cbar1 = fig.colorbar(sm, ax=ax1)
+                #     cbar1.set_label("Depth position (px)")
+
+                #     fig.suptitle(f"{input_fn_abs}: a-line {a}/{nalines}")
+                #     fig.tight_layout()
+
+                #     if save_figure:
+                #         output_img = f"_skin-displacement_estimation+motion_a-line-{a}_a.png"
+                #         output_img_abs = output_folder_abs + output_img
+                #         os.makedirs(os.path.dirname(output_img_abs), exist_ok=True)
+                #         fig.savefig(output_img_abs, dpi=300, bbox_inches="tight")
+
+                #     if show:
+                #         plt.show(block=True)
 
         if save_results:
             output_filename = "skin_displacement_estimation.csv"
@@ -127,6 +194,5 @@ if __name__ == "__main__":
 
     print(datetime.now())
     print(f"{n_success}/{len(input_foldernames_abs)} acquisitions have been processed.")
-
 
 
