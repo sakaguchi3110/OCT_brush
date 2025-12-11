@@ -74,8 +74,8 @@ def calculate_displacement(phase_change_data, wavelength=1300):
 
 # phase FFT
 def plot_displacement_vs_frequency_at_depths(phase_change_data, sampling_rate, dfs, save_path, condname, cover, wavelength=1300):
-    titles = ['after_brushing']
-    # titles = ['before_brushing', 'after_brushing']
+    # titles = ['after_brushing']
+    titles = ['before_brushing', 'after_brushing']
     if cover == 'bare':
         offsets = [2, 20, 160] #[2, 20, 40, 160]
     elif cover == 'tegaderm':
@@ -219,12 +219,12 @@ def split_dataframe(df):
                 end_index = i
             consecutive_zeros = 0
 
-    # before_df = pd.DataFrame()
+    before_df = pd.DataFrame()
     after_df = pd.DataFrame()
 
-    # if start_index != -1:
-    #     before_index = max(0, start_index - 5001)
-    #     before_df = df.iloc[before_index:start_index - 1]
+    if start_index != -1:
+        before_index = max(0, start_index - 5001)
+        before_df = df.iloc[before_index:start_index - 1]
 
     if end_index != -1:
         after_rows = []
@@ -235,7 +235,7 @@ def split_dataframe(df):
         after_df = pd.DataFrame(after_rows)
 
     result = []
-    # result.append(("before_brushing", before_df))
+    result.append(("before_brushing", before_df))
     result.append(("after_brushing", after_df))
 
     return result
@@ -290,9 +290,10 @@ for key, entries in grouped_data.items():
 
     if 'bare' in entries and 'tegaderm' in entries:
         fig, axs = plt.subplots(2, 2, figsize=(18, 10), sharey=True)
-        # titles = ['before_brushing', 'after_brushing']
-        titles = ['after_brushing']
+        titles = ['before_brushing', 'after_brushing']
+        # titles = ['after_brushing']
         valid_plot = False
+        valid_entries = []
 
         for row_idx, cover in enumerate(['bare', 'tegaderm']):
             offsets = [2, 20, 160] if cover == 'bare' else [22, 40, 180] #[2, 20, 40, 160][22, 40, 60, 180]
@@ -311,6 +312,7 @@ for key, entries in grouped_data.items():
                 if all(df.empty for _, df in dfs):
                     print(f" ⚠️ Skipped empty dataframes in: {entry['condname']}")
                     continue
+                valid_entries.append(entry['condname'])
 
                 fft_results = plot_displacement_vs_frequency_at_depths(
                     entry['phase_change_data'],
@@ -364,16 +366,29 @@ for key, entries in grouped_data.items():
                 axs[row_idx, col_idx].set_xlim(0, 500)
                 # axs[row_idx, col_idx].set_ylim(1, 100000)
                 # axs[row_idx, col_idx].set_yscale('log')
-                axs[row_idx, col_idx].set_ylim(10, 300)
+                axs[row_idx, col_idx].set_ylim(0, 300)
                 axs[row_idx, col_idx].grid(True, color='lightgray')
                 axs[row_idx, col_idx].legend(fontsize=9, facecolor='dimgray')
                 axs[row_idx, col_idx].set_facecolor('dimgray')
 
         axs[0, 0].set_ylabel("Amplitude (Bare)")
         axs[1, 0].set_ylabel("Amplitude (Tegaderm)")
-        fig.suptitle(f"Averaged AMP Spectrum vs Frequency: {key[3]} - {key[0]} - {key[1]} - {key[2]}", fontsize=16)
+
+        times_used = []
+        for name in valid_entries:
+            parts = name.split('_')
+            if len(parts) >= 2:
+                times_used.append(parts[1])
+            else:
+                times_used.append(name)  # fallback
+        used_label = ", ".join(times_used)
+        fig.suptitle(
+            f"Averaged AMP Spectrum vs Frequency: {key[3]} - {key[0]} - {key[1]} - {key[2]}\nUsed: {used_label}",
+            fontsize=14
+        )
+
         plt.tight_layout()
-        # plt.show()
+        plt.show()
 
         if valid_plot:
             tiffname = f"AMP_spectrum_{key[0]}_{key[1]}_{key[2]}.tiff"
