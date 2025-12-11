@@ -10,12 +10,20 @@ class OCTPhaseChange:
         self.session_id = metadata.session_name
         nLines, nDepths, nSamples = morph.shape
         phase_change_ = np.zeros((nLines, nDepths, nSamples - 1))
-        
+        phase_unwrapped_ = np.zeros((nLines, nDepths, nSamples))  # unwrap の保持用
+
         for a in range(nLines):
             print(f"Phase Change processing ({a + 1}/{nLines})")
-            phase_change_[a, :, :] = self.compute_phase_change_slice(morph[a, :, :])
-        self.phase_change = phase_change_
+            phasechange, unwrap = self.compute_phase_change_slice(morph[a, :, :])
         
+        phase_change_[a, :, :] = phasechange
+        phase_unwrapped_[a, :, :] = unwrap
+        
+        self.phase_change = phase_change_
+        self.phase_unwrapped = phase_unwrapped_
+        
+        #     phase_change_[a, :, :] = self.compute_phase_change_slice(morph[a, :, :])
+        # self.phase_change = phase_change_
         if show:
             for a in range(nLines):
                 fig, axs = plt.subplots(3, 1, figsize=(10, 15))
@@ -55,10 +63,10 @@ class OCTPhaseChange:
             ntimes = slice_morph.shape[1]
             phasechange = np.angle(slice_morph[:, 1:] * np.conj(slice_morph[:, :-1]))
         else:
-            phasechange = np.diff(np.angle(slice_morph), axis=1)
-            phasechange[phasechange > +np.pi] -= 2 * np.pi
-            phasechange[phasechange < -np.pi] += 2 * np.pi
-        return phasechange
+
+            phase_unwrapped = np.unwrap(np.angle(slice_morph), axis=1)
+            phasechange = np.diff(phase_unwrapped, axis=1)
+        return phasechange, phase_unwrapped
     
 def get_phase_change_data(octr):
     phase_change_data = octr.phase_change  
